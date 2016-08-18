@@ -6,7 +6,7 @@
 #   Location of the apt repository
 #
 # [*release*]
-#   Release of the apt repository
+#   Parameter Removed since obsolete
 #
 # [*repos*]
 #   Apt repository names
@@ -18,7 +18,7 @@
 #   Public key in apt::key format
 #
 # [*dotdeb*]
-#   Enable special dotdeb handling
+#   Parameter Removed since obsolete
 #
 class php::repo::debian(
   $location     = 'http://packages.dotdeb.org',
@@ -29,6 +29,7 @@ class php::repo::debian(
     'id'     => '6572BBEF1B5FF28B28B706837E3F070089DF5277',
     'source' => 'http://www.dotdeb.org/dotdeb.gpg',
   },
+  $dotdeb       = false,
 ) {
 
   if $caller_module_name != $module_name {
@@ -39,9 +40,9 @@ class php::repo::debian(
 
   create_resources(::apt::key, { 'php::repo::debian' => {
     key => $key['id'], key_source => $key['source'],
-  }})
+  } })
 
-  $version_repo = $globals_php_version ? {
+  $version_repo = $::php::globals::globals_php_version ? {
     '5.4' => "${::lsbdistcodename}-php54",
     '5.5' => "${::lsbdistcodename}-php55",
     '5.6' => "${::lsbdistcodename}-php56",
