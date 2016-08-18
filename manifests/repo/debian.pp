@@ -42,18 +42,21 @@ class php::repo::debian(
     key => $key['id'], key_source => $key['source'],
   } })
 
-  $version_repo = $::php::globals::globals_php_version ? {
+  $release = $::php::globals::globals_php_version ? {
     '5.4' => "${::lsbdistcodename}-php54",
     '5.5' => "${::lsbdistcodename}-php55",
     '5.6' => "${::lsbdistcodename}-php56",
     '7.0' => "${::lsbdistcodename}"
   }
 
-  ::apt::source { "source_php_${release}":
+  ::apt::source { "dotdeb-${release}":
     location    => $location,
     release     => $release,
     repos       => $repos,
-    include_src => $include_src,
+    include  => {
+      'src' => $include_src,
+      'deb' => true,
+    },
     require     => Apt::Key['php::repo::debian'],
   }
 }
