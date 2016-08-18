@@ -29,7 +29,6 @@ class php::repo::debian(
     'id'     => '6572BBEF1B5FF28B28B706837E3F070089DF5277',
     'source' => 'http://www.dotdeb.org/dotdeb.gpg',
   },
-  $dotdeb       = true,
 ) {
 
   if $caller_module_name != $module_name {
@@ -42,24 +41,18 @@ class php::repo::debian(
     key => $key['id'], key_source => $key['source'],
   }})
 
+  $version_repo = $globals_php_version ? {
+    '5.4' => "${::lsbdistcodename}-php54",
+    '5.5' => "${::lsbdistcodename}-php55",
+    '5.6' => "${::lsbdistcodename}-php56",
+    '7.0' => "${::lsbdistcodename}"
+  }
+
   ::apt::source { "source_php_${release}":
     location    => $location,
     release     => $release,
     repos       => $repos,
     include_src => $include_src,
     require     => Apt::Key['php::repo::debian'],
-  }
-
-  if ($dotdeb) {
-    # both repositories are required to work correctly
-    # See: http://www.dotdeb.org/instructions/
-    if $release == 'wheezy-php56' {
-      ::apt::source { 'dotdeb-wheezy':
-        location    => $location,
-        release     => 'wheezy',
-        repos       => $repos,
-        include_src => $include_src,
-      }
-    }
   }
 }
