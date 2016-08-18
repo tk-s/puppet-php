@@ -22,7 +22,7 @@
 #
 class php::repo::debian(
   $location     = 'http://packages.dotdeb.org',
-  $release      = 'wheezy-php56',
+  $release      = "${::lsbdistcodename}",
   $repos        = 'all',
   $include_src  = false,
   $key          = {
@@ -43,17 +43,18 @@ class php::repo::debian(
   } })
 
   $dotdeb_release = $::php::globals::globals_php_version ? {
-    '5.4' => "${::lsbdistcodename}-php54",
-    '5.5' => "${::lsbdistcodename}-php55",
-    '5.6' => "${::lsbdistcodename}-php56",
-    '7.0' => "${::lsbdistcodename}"
+    '5.4'   => "${::lsbdistcodename}-php54",
+    '5.5'   => "${::lsbdistcodename}-php55",
+    '5.6'   => "${::lsbdistcodename}-php56",
+    '7.0'   => "${::lsbdistcodename}",
+    default => $release
   }
 
   ::apt::source { "dotdeb-${dotdeb_release}":
     location    => $location,
     release     => $dotdeb_release,
     repos       => $repos,
-    include  => {
+    include     => {
       'src' => $include_src,
       'deb' => true,
     },
