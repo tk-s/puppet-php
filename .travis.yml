@@ -1,39 +1,53 @@
+---
 sudo: false
 language: ruby
-rvm:
-- 2.1.6
-- 2.0.0
-- 1.9.3
-env:
-  matrix:
-  - PUPPET_VERSION=4.3.2
-  - PUPPET_VERSION=3.8.7
-  - PUPPET_VERSION=3.8.7 FUTURE_PARSER=yes TRUSTED_NODE_DATA=yes
-  global:
-  - secure: Zc0V6JqwpFTTtVE7jVFg5R6UgXZrzsBGa6ckbOnIHPCOyJsV4oWO6RxKsYI+ozzD9nrEdrT/DTcHKRz84YqrMXxvBU9HA4S/ZrNQoRiH3bEnI3UHC6jQJRX0c71gaJEMQ3S33my39vLD7EsealX3p+j8asL8e8glYR1am9ekUB8=
+cache: bundler
+bundler_args: --without system_tests development
+before_install:
+  - bundle -v
+  - rm Gemfile.lock || true
+  - gem update --system
+  - gem update bundler
+  - gem --version
+  - bundle -v
+script:
+  - 'bundle exec rake $CHECK'
 matrix:
-  exclude:
-  - rvm: 2.1.6
-    env: PUPPET_VERSION=3.8.7
+  fast_finish: true
   include:
-  - rvm: 2.1.6
-    env: PUPPET_VERSION=3.8.7 DOCS=true
-  - rvm: 2.2.3
-    env: PUPPET_VERSION=4.3.2
-  - rvm: 2.3.0
-    env: PUPPET_VERSION=4.5.2
-after_success: |
-  [ $TRAVIS_BRANCH = master ] &&
-  [ $TRAVIS_PULL_REQUEST = false ] &&
-  [ -n "$DOCS" ] &&
-  puppet module install puppetlabs/strings &&
-  puppet strings &&
-  pip install --user ghp-import &&
-  echo php.puppet.mayflower.de > doc/CNAME &&
-  ~/.local/bin/ghp-import -n doc &&
-  git push -fq https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git gh-pages
+  - rvm: 1.9.3
+    env: PUPPET_VERSION="~> 3.0" STRICT_VARIABLES="yes" CHECK=test
+  - rvm: 1.9.3
+    env: PUPPET_VERSION="~> 3.0" STRICT_VARIABLES="yes" FUTURE_PARSER="yes" CHECK=test
+  - rvm: 2.1.9
+    env: PUPPET_VERSION="~> 3.0" STRICT_VARIABLES="yes" CHECK=test
+  - rvm: 2.1.9
+    env: PUPPET_VERSION="~> 4.0" CHECK=test
+  - rvm: 2.2.6
+    env: PUPPET_VERSION="~> 4.0" CHECK=test
+  - rvm: 2.3.3
+    env: PUPPET_VERSION="~> 4.0" CHECK=build DEPLOY_TO_FORGE=yes
+  - rvm: 2.3.3
+    env: PUPPET_VERSION="~> 4.0" CHECK=rubocop
+  - rvm: 2.3.3
+    env: PUPPET_VERSION="~> 4.0" CHECK=test
+  - rvm: 2.4.0-rc1
+    env: PUPPET_VERSION="~> 4.0" CHECK=test
+  allow_failures:
+    - rvm: 2.4.0-rc1
+branches:
+  only:
+  - master
 notifications:
-  webhooks:
-    urls:
-    - http://travis-notify.mayflower.de/opensource
-    on_start: true
+  email: false
+deploy:
+  provider: puppetforge
+  user: puppet
+  password:
+    secure: ""
+  on:
+    tags: true
+    # all_branches is required to use tags
+    all_branches: true
+    # Only publish the build marked with "DEPLOY_TO_FORGE"
+    condition: "$DEPLOY_TO_FORGE = yes"

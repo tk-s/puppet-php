@@ -13,6 +13,7 @@
     { "name": "puppetlabs/apt", "version_requirement": ">= 1.8.0 < 3.0.0" },
     { "name": "puppetlabs/inifile", "version_requirement": "1.x" },
     { "name": "darin/zypprepo", "version_requirement": "1.x" },
+    { "name": "puppet/archive", "version_requirement": "1.x" },
     { "name": "example42/yum", "version_requirement": "2.x" }
   ],
   "requirements": [
@@ -22,9 +23,7 @@
   "operatingsystem_support": [
     { "operatingsystem": "Ubuntu",
       "operatingsystemrelease": [
-        "14.10",
-        "14.04",
-        "12.04"
+        "14.04"
       ]
     },
     { "operatingsystem": "Debian",

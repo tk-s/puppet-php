@@ -39,7 +39,7 @@
 #
 # [*zend*]
 #  Boolean parameter, whether to load extension as zend_extension.
-#  This can only be set for pecl modules. Defaults to false.
+#  Defaults to false.
 #
 # [*settings*]
 #   Nested hash of global config parameters for php.ini
@@ -52,7 +52,7 @@
 #   String parameter, whether to specify ALL sapi or a specific sapi.
 #   Defaults to ALL.
 #
-define php::extension(
+define php::extension (
   $ensure            = 'installed',
   $provider          = undef,
   $source            = undef,
@@ -67,6 +67,10 @@ define php::extension(
   $settings_prefix   = false,
   $sapi              = 'ALL',
 ) {
+
+  if ! defined(Class['php']) {
+    warning('php::extension is private')
+  }
 
   validate_string($ensure)
   validate_string($package_prefix)
@@ -88,6 +92,7 @@ define php::extension(
   }
 
   if $provider != 'none' {
+
     if $provider == 'pecl' {
       $real_package = "pecl-${title}"
     }
@@ -123,10 +128,10 @@ define php::extension(
         source   => $real_source,
       })
     }
-  }
 
-  if $provider != 'pecl' and $zend {
-    fail('You can only use the zend parameter for pecl PHP extensions!')
+    $package_depends = "Package[${real_package}]"
+  } else {
+    $package_depends = undef
   }
 
   if $zend == true {
@@ -162,31 +167,16 @@ define php::extension(
     $full_settings = $settings
   }
 
-  if $provider == 'pecl' {
-    $final_settings = deep_merge(
-      {"${extension_key}" => "${module_path}${so_name}.so"},
-      $full_settings
-    )
-  }
-  else {
-    # On FreeBSD systems the settings file is required for every module
-    # (regardless of provider) to allow for proper module management.
-    if $::osfamily == 'FreeBSD' {
-      $final_settings = deep_merge(
-        {"${extension_key}" => "${name}.so"},
-        $full_settings
-      )
-    }
-    else {
-      $final_settings = $full_settings
-    }
-  }
+  $final_settings = deep_merge(
+    {"${extension_key}" => "${module_path}${so_name}.so"},
+    $full_settings
+  )
 
   $config_root_ini = pick_default($::php::config_root_ini, $::php::params::config_root_ini)
   ::php::config { $title:
     file    => "${config_root_ini}/${lowercase_title}.ini",
     config  => $final_settings,
-    require => Package[$real_package],
+    require => $package_depends,
   }
 
   # Ubuntu/Debian systems use the mods-available folder. We need to enable
